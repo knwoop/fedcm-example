@@ -12,7 +12,9 @@ type Server struct {
 
 func NewServer(port int) *Server {
 	mux := http.NewServeMux()
-	mux.Handle("/hello", &helloHandler{})
+	mux.Handle("/users", &listUserHandler{})
+	mux.Handle("/user", &getUserHandler{})
+	mux.Handle("/me", &getMeHandler{})
 
 	return &Server{
 		server: &http.Server{
