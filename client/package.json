@@ -9,7 +9,8 @@
     "lint": "next lint --dir src",
     "format": "next lint --fix --dir src",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "test": "jest"
   },
   "dependencies": {
     "@emotion/react": "^11.10.5",
@@ -45,6 +46,8 @@
     "@storybook/manager-webpack5": "^6.5.14",
     "@storybook/react": "^6.5.14",
     "@storybook/testing-library": "^0.0.13",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
     "@types/react-content-loader": "^4.0.0",
     "@types/styled-components": "^5.1.26",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
@@ -56,6 +59,8 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.31.11",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "jest": "^29.3.1",
+    "jest-environment-jsdom": "^29.3.1",
     "prettier": "^2.8.1",
     "tsconfig-paths-webpack-plugin": "^4.0.0",
     "typescript-eslint": "^0.0.1-alpha.0"
