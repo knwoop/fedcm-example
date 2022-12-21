@@ -65,17 +65,65 @@ func (h *listUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type signinHandler struct {
+}
+
+func (h *signinHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("login!!")
+	cookie := &http.Cookie{
+		Name:     "SID",
+		Value:    "token",
+		MaxAge:   0,
+		Path:     "/",
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+	user := &user.User{
+		ID:       1,
+		Username: "user1",
+		Email:    "user1@examole.com",
+	}
+
+	if err := json.NewEncoder(w).Encode(&user); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 type getMeHandler struct {
 }
 
 func (h *getMeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", "hello")
+	cookie, errs := r.Cookie("SID")
+	if errs != nil || cookie.Value == "" {
+		return
+	}
+
+	fmt.Println("meeeeeeeeeee", cookie.Value)
 }
 
 type getWellKnownFile struct {
 }
 
 func (h *getWellKnownFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	wi := &fedcm.WebIdentity{
+		ProviderURLs: []string{
+			"http://localhost:8080/config.json",
+		},
+	}
+
+	w.Header().Set("content-type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(&wi); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+type getConfigFile struct {
+}
+
+func (h *getConfigFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m := &fedcm.Manifest{
 		AccountsEndpoint:       "/accounts",
 		ClientMetadataEndpoint: "/metadata",
@@ -92,6 +140,8 @@ func (h *getWellKnownFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	w.Header().Set("content-type", "application/json")
+
 	if err := json.NewEncoder(w).Encode(&m); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -102,6 +152,11 @@ type accountsHandler struct {
 }
 
 func (h *accountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	cookie, errs := r.Cookie("SID")
+	if errs != nil || cookie.Value != "token" {
+		return
+	}
+
 	fmt.Fprintf(w, "%s", "hello")
 }
 

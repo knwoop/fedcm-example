@@ -15,7 +15,12 @@ func NewServer(port int) *Server {
 	mux.Handle("/users", &listUserHandler{})
 	mux.Handle("/user", &getUserHandler{})
 	mux.Handle("/me", &getMeHandler{})
-	mux.Handle("/.well-known/manifest.json", &getWellKnownFile{})
+
+	mux.Handle("/auth/signin", &signinHandler{})
+
+	mux.Handle("/.well-known/web-identity", &getWellKnownFile{})
+	mux.Handle("/config.json", &getConfigFile{})
+
 	mux.Handle("/accounts", &accountsHandler{})
 	mux.Handle("/metadata", &metadataHandler{})
 	mux.Handle("/assertion", &assertionHandler{})
