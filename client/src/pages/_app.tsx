@@ -3,6 +3,9 @@ import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { createGlobalStyle, ThemeProvider } from 'styled-components'
 import { SWRConfig } from 'swr'
+import GlobalSpinner from 'components/organisms/GlobalSpinner'
+import { AuthContextProvider } from 'contexts/AuthContext'
+import GlobalSpinnerContextProvider from 'contexts/GlobalSpinnerContext'
 import { theme } from 'themes'
 import type { ApiContext } from 'types'
 import { fetcher } from 'utils'
@@ -69,7 +72,12 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
             fetcher,
           }}
         >
-          <Component {...pageProps} />
+          <GlobalSpinnerContextProvider>
+            <AuthContextProvider context={context}>
+              <GlobalSpinner />
+              <Component {...pageProps} />
+            </AuthContextProvider>
+          </GlobalSpinnerContextProvider>
         </SWRConfig>
       </ThemeProvider>
     </>
