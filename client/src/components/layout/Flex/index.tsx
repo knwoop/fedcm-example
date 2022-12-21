@@ -29,9 +29,6 @@ type FlexProps = BoxProps & {
   order?: Responsive<string>
 }
 
-/**
- * Flex component uses as FlexBox
- */
 const Flex = styled(Box)<FlexProps>`
   ${(props) => toPropValue('align-items', props.alignItems, props.theme)}
   ${(props) => toPropValue('align-content', props.alignContent, props.theme)}
