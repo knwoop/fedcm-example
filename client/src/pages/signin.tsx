@@ -28,8 +28,8 @@ const SigninPage: NextPage = () => {
       identity: {
         providers: [
           {
-            configURL: 'http://localhost:8080/config.json',
-            clientId: "knwoop-client-id'",
+            configURL: process.env.NEXT_PUBLIC_FEDCM_CONFIG_URL,
+            clientId: process.env.NEXT_PUBLIC_AUTH_CLIENT_ID,
             nonce: nonce,
           },
         ],
