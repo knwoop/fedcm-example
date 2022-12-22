@@ -23,7 +23,6 @@ const SigninPage: NextPage = () => {
   const onSignInWithFedCMClick = async (err?: Error) => {
     const N = 16
     nonce = randomBytes(N).toString('base64').substring(0, N)
-    console.log(nonce)
     const credential = await navigator.credentials.get({
       identity: {
         providers: [
