@@ -1,15 +1,17 @@
+import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import Button from '../components/atoms/Button'
 import Text from '../components/atoms/Text'
-import Box from '../components/layout/Box'
-import Flex from '../components/layout/Flex'
-import Layout from '../components/templates/Layout'
+import Box from 'components/layout/Box'
+import Flex from 'components/layout/Flex'
+import Layout from 'components/templates/Layout'
 
-export default function Home() {
+const PrivacyPolicyPage: NextPage = () => {
   const router = useRouter()
-  const toSigninOnClick = async () => {
-    await router.push('/signin')
+  const backHomeOnClick = async () => {
+    await router.push('/')
   }
+
   return (
     <Layout>
       <Flex
@@ -26,15 +28,13 @@ export default function Home() {
           alignItems="center"
         >
           <Box>
-            <Text variant={'large'} color={'white'}>
-              Home
-            </Text>
+            <Text color={'white'}>privacy policy...</Text>
           </Box>
           <Box width="100%" margin="10px">
             <Button
               variant={'secondary'}
               width="100%"
-              onClick={() => toSigninOnClick()}
+              onClick={() => backHomeOnClick()}
             >
               Home
             </Button>
@@ -44,3 +44,5 @@ export default function Home() {
     </Layout>
   )
 }
+
+export default PrivacyPolicyPage

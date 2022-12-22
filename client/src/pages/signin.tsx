@@ -1,5 +1,7 @@
+import { randomBytes } from 'crypto'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
+import Button from '../components/atoms/Button'
 import AppLogo from 'components/atoms/AppLogo'
 import Box from 'components/layout/Box'
 import Flex from 'components/layout/Flex'
@@ -15,6 +17,28 @@ const SigninPage: NextPage = () => {
       console.log('Redirecting', redurectTo)
       await router.push(redurectTo)
     }
+  }
+
+  let nonce = ''
+  const onSignInWithFedCMClick = async (err?: Error) => {
+    const N = 16
+    nonce = randomBytes(N).toString('base64').substring(0, N)
+    console.log(nonce)
+    const credential = await navigator.credentials.get({
+      identity: {
+        providers: [
+          {
+            configURL: 'http://localhost:8080/config.json',
+            clientId: "knwoop-client-id'",
+            nonce: nonce,
+          },
+        ],
+      },
+    })
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const { token } = credential
+    console.log(token)
   }
 
   return (
@@ -37,6 +61,15 @@ const SigninPage: NextPage = () => {
           </Box>
           <Box width="100%">
             <SigninFormContainer onSignin={handleSignin} />
+          </Box>
+          <Box width="100%" margin="10px">
+            <Button
+              variant={'secondary'}
+              width="100%"
+              onClick={() => onSignInWithFedCMClick()}
+            >
+              FedCM demo
+            </Button>
           </Box>
         </Flex>
       </Flex>
