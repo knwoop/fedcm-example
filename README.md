@@ -20,5 +20,5 @@ $ make run
 
 3. access the link below in your browser
 ```
-$ open http://localhost
+$ open http://localhost:3000/
 ```
