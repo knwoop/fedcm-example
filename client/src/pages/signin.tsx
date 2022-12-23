@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
-import Button from '../components/atoms/Button'
+import SigninWithFedCMContainer from '../containers/SigninWithFedCMContainer'
 import AppLogo from 'components/atoms/AppLogo'
 import Box from 'components/layout/Box'
 import Flex from 'components/layout/Flex'
@@ -13,31 +13,9 @@ const SigninPage: NextPage = () => {
   const handleSignin = async (err?: Error) => {
     if (!err) {
       const redurectTo = (router.query['redirect_to'] as string) ?? '/'
-
       console.log('Redirecting', redurectTo)
       await router.push(redurectTo)
     }
-  }
-
-  let nonce = ''
-  const onSignInWithFedCMClick = async (err?: Error) => {
-    const N = 16
-    nonce = randomBytes(N).toString('base64').substring(0, N)
-    const credential = await navigator.credentials.get({
-      identity: {
-        providers: [
-          {
-            configURL: process.env.NEXT_PUBLIC_FEDCM_CONFIG_URL,
-            clientId: process.env.NEXT_PUBLIC_AUTH_CLIENT_ID,
-            nonce: nonce,
-          },
-        ],
-      },
-    })
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const { token } = credential
-    console.log(token)
   }
 
   return (
@@ -62,13 +40,7 @@ const SigninPage: NextPage = () => {
             <SigninFormContainer onSignin={handleSignin} />
           </Box>
           <Box width="100%" margin="10px">
-            <Button
-              variant={'secondary'}
-              width="100%"
-              onClick={() => onSignInWithFedCMClick()}
-            >
-              FedCM demo
-            </Button>
+            <SigninWithFedCMContainer onSignin={handleSignin} />
           </Box>
         </Flex>
       </Flex>
