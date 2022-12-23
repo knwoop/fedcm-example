@@ -190,7 +190,6 @@ func (s *Server) AccountsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) MetadataHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("meta!!")
 	m := &fedcm.IdentityProviderClientMetadata{
 		PrivacyPolicyURL:  config.PrivacyPolicyURL,
 		TermsOfServiceURL: config.TermsOfServiceURL,
@@ -209,9 +208,6 @@ func (s *Server) AssertionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for k, v := range r.Form {
-		fmt.Printf("%v : %v\n", k, v)
-	}
 	accountID := r.Form.Get("account_id")
 	clientID := r.Form.Get("client_id")
 	nonce := r.Form.Get("nonce")
