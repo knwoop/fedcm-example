@@ -1,6 +1,6 @@
 # fedcm-example
 
-This is FedCM example code
+This is [Federated Credential Management API(FedCM)](https://fedidcg.github.io/FedCM/) example code
 
 :warning::warning: Do not use production code :warning::warning:
 
