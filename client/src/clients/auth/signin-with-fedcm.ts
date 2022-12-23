@@ -1,5 +1,4 @@
-import { ApiContext, User } from 'types'
-import { fetcher } from 'utils'
+import { ApiContext } from 'types'
 
 export type SigninWithFedCMParams = {
   nonce: string
