@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/knwoop/fedcm-example/idp/config"
 	"github.com/knwoop/fedcm-example/idp/fedcm"
 	"github.com/knwoop/fedcm-example/idp/token"
@@ -21,15 +23,19 @@ func (s *Server) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := s.db.GetUserByID(r.Context(), req.ID)
+	u, err := s.db.GetUserByUserName(r.Context(), req.Username)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		u = &req
+		u.ID = uuid.NewString()
+		u.Username = "no " + time.Now().Format("150405")
+		u.Name = "foo"
+		u.Email = fmt.Sprintf("%s@example.com", u.Username)
+		_ = s.db.PutUser(r.Context(), u)
 	}
-	fmt.Println("login!!")
+
 	cookie := &http.Cookie{
 		Name:     "SID",
-		Value:    u.Username,
+		Value:    u.ID,
 		MaxAge:   0,
 		Path:     "/",
 		HttpOnly: true,
@@ -41,7 +47,43 @@ func (s *Server) Signin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Server) getMeHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) SigninWithIDToken(w http.ResponseWriter, r *http.Request) {
+	type request struct {
+		IDToken string `json:"id_token"`
+	}
+	var req request
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	sub, err := token.VerifyIDToken(req.IDToken)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	u, err := s.db.GetUserByID(r.Context(), sub)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:     "SID",
+		Value:    u.ID,
+		MaxAge:   0,
+		Path:     "/",
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+	if err := json.NewEncoder(w).Encode(&u); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server) getMeHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("SID")
 	if err != nil {
 		switch {
@@ -55,7 +97,16 @@ func (h *Server) getMeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Println("meeeeeeeeeee", cookie.Value)
+	u, err := s.db.GetUserByID(r.Context(), cookie.Value)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(&u); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s *Server) GetWellKnownFileHandler(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +124,7 @@ func (s *Server) GetWellKnownFileHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (h *Server) GetConfigFileHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetConfigFileHandler(w http.ResponseWriter, r *http.Request) {
 	m := &fedcm.Manifest{
 		AccountsEndpoint:       "/accounts",
 		ClientMetadataEndpoint: "/metadata",
@@ -180,7 +231,7 @@ func (s *Server) AssertionHandler(w http.ResponseWriter, r *http.Request) {
 
 	u, _ := s.db.GetUserByID(r.Context(), assertion.AccountID)
 
-	token, err := token.GenereateIDToken("idp", u.Username)
+	token, err := token.GenereateIDToken("idp", u.ID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to generate token: %s", err), http.StatusInternalServerError)
 		return

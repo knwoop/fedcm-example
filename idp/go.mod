@@ -2,7 +2,10 @@ module github.com/knwoop/fedcm-example/idp
 
 go 1.19
 
-require github.com/lestrrat-go/jwx/v2 v2.0.8
+require (
+	github.com/google/uuid v1.3.0
+	github.com/lestrrat-go/jwx/v2 v2.0.8
+)
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect

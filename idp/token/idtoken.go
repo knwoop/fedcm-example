@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	jwkKey     jwk.Key
+	publicKey  jwk.Key
 	privateKey ed25519.PrivateKey
 )
 
@@ -26,7 +26,7 @@ func init() {
 
 	privateKey = priv
 
-	jwkKey, err = jwk.FromRaw(pub)
+	publicKey, err = jwk.FromRaw(pub)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create JWK key: %s", err))
 	}
@@ -50,7 +50,7 @@ func GenereateIDToken(iss, sub string) ([]byte, error) {
 }
 
 func VerifyIDToken(idtoken string) (string, error) {
-	t, err := jwt.Parse([]byte(idtoken), jwt.WithToken(openid.New()))
+	t, err := jwt.Parse([]byte(idtoken), jwt.WithKey(jwa.SignatureAlgorithm("EdDSA"), publicKey))
 	if err != nil {
 		return "", err
 	}

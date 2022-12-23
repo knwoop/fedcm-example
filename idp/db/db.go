@@ -48,6 +48,19 @@ func (d *DB) GetUserByID(ctx context.Context, id string) (*user.User, error) {
 	return user, nil
 }
 
+func (d *DB) GetUserByUserName(ctx context.Context, username string) (*user.User, error) {
+	d.lock.RLock()
+	defer d.lock.RUnlock()
+
+	for _, u := range d.users {
+		if u.Username == username {
+			return u, nil
+		}
+	}
+
+	return nil, ErrNotFound
+}
+
 func (d *DB) GetAllUsers(ctx context.Context) ([]*user.User, error) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()

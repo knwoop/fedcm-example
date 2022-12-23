@@ -14,15 +14,18 @@ type Server struct {
 }
 
 func NewServer(port int) *Server {
+	db := db.NewDB()
 	s := &Server{
 		server: &http.Server{
 			Addr: fmt.Sprintf(":%d", port),
 		},
+		db: db,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/me", s.getMeHandler)
 	mux.HandleFunc("/auth/signin", s.Signin)
+	mux.HandleFunc("/auth/idtoken", s.SigninWithIDToken)
 
 	mux.HandleFunc("/.well-known/web-identity", s.GetWellKnownFileHandler)
 	mux.HandleFunc("/config.json", s.GetConfigFileHandler)
