@@ -14,91 +14,34 @@ import (
 	"github.com/knwoop/fedcm-example/idp/user"
 )
 
-var (
-	_ http.Handler = (*listUserHandler)(nil)
-	_ http.Handler = (*getUserHandler)(nil)
-	_ http.Handler = (*getMeHandler)(nil)
-
-	// fedCM endpoints below
-	_ http.Handler = (*getWellKnownFile)(nil)
-	_ http.Handler = (*accountsHandler)(nil)
-	_ http.Handler = (*metadataHandler)(nil)
-	_ http.Handler = (*assertionHandler)(nil)
-)
-
-type getUserHandler struct {
-}
-
-func (h *getUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	user := &user.User{
-		ID:       1,
-		Username: "user1",
-		Email:    "user1@examole.com",
-	}
-
-	if err := json.NewEncoder(w).Encode(&user); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+func (s *Server) Signin(w http.ResponseWriter, r *http.Request) {
+	var req user.User
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-}
 
-type listUserHandler struct {
-}
-
-func (h *listUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	users := []*user.User{
-		{
-			ID:       1,
-			Username: "user1",
-			Email:    "user1@examole.com",
-		},
-		{
-			ID:       2,
-			Username: "user2",
-			Email:    "user2@examole.com",
-		},
-		{
-			ID:       3,
-			Username: "user3",
-			Email:    "user3@examole.com",
-		},
-	}
-
-	if err := json.NewEncoder(w).Encode(&users); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	u, err := s.db.GetUserByID(r.Context(), req.ID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-}
-
-type signinHandler struct {
-}
-
-func (h *signinHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("login!!")
 	cookie := &http.Cookie{
 		Name:     "SID",
-		Value:    "token",
+		Value:    u.Username,
 		MaxAge:   0,
 		Path:     "/",
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
-	user := &user.User{
-		ID:       1,
-		Username: "user1",
-		Email:    "user1@examole.com",
-	}
-
-	if err := json.NewEncoder(w).Encode(&user); err != nil {
+	if err := json.NewEncoder(w).Encode(&u); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
-type getMeHandler struct {
-}
-
-func (h *getMeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Server) getMeHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("SID")
 	if err != nil {
 		switch {
@@ -115,10 +58,7 @@ func (h *getMeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("meeeeeeeeeee", cookie.Value)
 }
 
-type getWellKnownFile struct {
-}
-
-func (h *getWellKnownFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetWellKnownFileHandler(w http.ResponseWriter, r *http.Request) {
 	wi := &fedcm.WebIdentity{
 		ProviderURLs: []string{
 			"http://localhost:8080/config.json",
@@ -133,10 +73,7 @@ func (h *getWellKnownFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type getConfigFile struct {
-}
-
-func (h *getConfigFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Server) GetConfigFileHandler(w http.ResponseWriter, r *http.Request) {
 	m := &fedcm.Manifest{
 		AccountsEndpoint:       "/accounts",
 		ClientMetadataEndpoint: "/metadata",
@@ -161,10 +98,7 @@ func (h *getConfigFile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type accountsHandler struct {
-}
-
-func (h *accountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Server) AccountsHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie("SID")
 	if err != nil {
 		switch {
@@ -172,34 +106,39 @@ func (h *accountsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "cookie not found", http.StatusUnauthorized)
 			return
 		default:
-			log.Println(err)
+
 			http.Error(w, "server error", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	accounts := &fedcm.IdentityProviderAccounts{
-		Accounts: []*fedcm.IdentityProviderAccount{
-			{
-				ID:        "knwoop",
-				GivenName: "kenwoo",
-				Name:      "Kenta Takahashi",
-				Email:     "knwoop@gmail.com",
-				Picture:   "https://avatars.githubusercontent.com/u/13586089?s=200",
-			},
-		},
+	us, err := s.db.GetAllUsers(r.Context())
+	if err != nil {
+		http.Error(w, "server error", http.StatusInternalServerError)
+	}
+
+	accounts := make([]*fedcm.IdentityProviderAccount, len(us))
+	for i, u := range us {
+		accounts[i] = &fedcm.IdentityProviderAccount{
+			ID:        u.ID,
+			GivenName: u.Username,
+			Name:      u.Name,
+			Email:     u.Email,
+			Picture:   u.Picture,
+		}
+	}
+
+	ipAccounts := &fedcm.IdentityProviderAccounts{
+		Accounts: accounts,
 	}
 	w.Header().Set("content-type", "application/json")
-	if err := json.NewEncoder(w).Encode(&accounts); err != nil {
+	if err := json.NewEncoder(w).Encode(&ipAccounts); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
-type metadataHandler struct {
-}
-
-func (h *metadataHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Server) MetadataHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("meta!!")
 	m := &fedcm.IdentityProviderClientMetadata{
 		PrivacyPolicyURL:  config.PrivacyPolicyURL,
@@ -213,10 +152,7 @@ func (h *metadataHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type assertionHandler struct {
-}
-
-func (h *assertionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Server) AssertionHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -242,9 +178,9 @@ func (h *assertionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		DisclosureTextShown: disclosureTextShown,
 	}
 
-	_ = assertion
+	u, _ := s.db.GetUserByID(r.Context(), assertion.AccountID)
 
-	token, err := token.GenereateIDToken("idp", "knwoop")
+	token, err := token.GenereateIDToken("idp", u.Username)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to generate token: %s", err), http.StatusInternalServerError)
 		return

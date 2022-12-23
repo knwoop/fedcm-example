@@ -4,33 +4,36 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/knwoop/fedcm-example/idp/db"
 )
 
 type Server struct {
 	server *http.Server
+	db     *db.DB
 }
 
 func NewServer(port int) *Server {
-	mux := http.NewServeMux()
-	mux.Handle("/users", &listUserHandler{})
-	mux.Handle("/user", &getUserHandler{})
-	mux.Handle("/me", &getMeHandler{})
-
-	mux.Handle("/auth/signin", &signinHandler{})
-
-	mux.Handle("/.well-known/web-identity", &getWellKnownFile{})
-	mux.Handle("/config.json", &getConfigFile{})
-
-	mux.Handle("/accounts", &accountsHandler{})
-	mux.Handle("/metadata", &metadataHandler{})
-	mux.Handle("/assertion", &assertionHandler{})
-
-	return &Server{
+	s := &Server{
 		server: &http.Server{
-			Addr:    fmt.Sprintf(":%d", port),
-			Handler: mux,
+			Addr: fmt.Sprintf(":%d", port),
 		},
 	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/me", s.getMeHandler)
+	mux.HandleFunc("/auth/signin", s.Signin)
+
+	mux.HandleFunc("/.well-known/web-identity", s.GetWellKnownFileHandler)
+	mux.HandleFunc("/config.json", s.GetConfigFileHandler)
+
+	mux.HandleFunc("/accounts", s.AccountsHandler)
+	mux.HandleFunc("/metadata", s.MetadataHandler)
+	mux.HandleFunc("/assertion", s.AssertionHandler)
+
+	s.server.Handler = mux
+
+	return s
 }
 
 func (s *Server) Start() error {

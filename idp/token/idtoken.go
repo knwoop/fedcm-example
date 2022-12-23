@@ -48,3 +48,12 @@ func GenereateIDToken(iss, sub string) ([]byte, error) {
 	}
 	return signed, nil
 }
+
+func VerifyIDToken(idtoken string) (string, error) {
+	t, err := jwt.Parse([]byte(idtoken), jwt.WithToken(openid.New()))
+	if err != nil {
+		return "", err
+	}
+
+	return t.Subject(), nil
+}
