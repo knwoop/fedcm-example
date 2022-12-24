@@ -1,8 +1,8 @@
 .PHONY: install
 install:
 	cd ./idp && go mod tidy
-	cd ./client && npm install
+	cd ./rp && npm install
 
 .PHONY: run
 run:
-	cd ./idp && go run ./main.go & cd ./client && npm run dev
+	cd ./idp && go run ./main.go & cd ./rp && npm run dev
