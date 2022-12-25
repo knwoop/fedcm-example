@@ -30,9 +30,9 @@ func NewServer(port int) *Server {
 	mux.HandleFunc("/.well-known/web-identity", s.GetWellKnownFileHandler)
 	mux.HandleFunc("/config.json", s.GetConfigFileHandler)
 
-	mux.HandleFunc("/accounts", s.AccountsHandler)
-	mux.HandleFunc("/metadata", s.MetadataHandler)
-	mux.HandleFunc("/assertion", s.AssertionHandler)
+	mux.HandleFunc("/fedcm/accounts_endpoint", s.AccountsHandler)
+	mux.HandleFunc("/fedcm/client_metadata_endpoint", s.MetadataHandler)
+	mux.HandleFunc("/fedcm/id_assertion_endpoint", s.AssertionHandler)
 
 	s.server.Handler = mux
 

@@ -126,9 +126,9 @@ func (s *Server) GetWellKnownFileHandler(w http.ResponseWriter, r *http.Request)
 
 func (s *Server) GetConfigFileHandler(w http.ResponseWriter, r *http.Request) {
 	m := &fedcm.Manifest{
-		AccountsEndpoint:       "/accounts",
-		ClientMetadataEndpoint: "/metadata",
-		IDAssertionEndpoint:    "/assertion",
+		AccountsEndpoint:       "/fedcm/accounts_endpoint",
+		ClientMetadataEndpoint: "/fedcm/client_metadata_endpoint",
+		IDAssertionEndpoint:    "/fedcm/id_assertion_endpoint",
 		Branding: &fedcm.Branding{
 			BackgroundColor: "green",
 			Color:           "0xFFEEAA",
