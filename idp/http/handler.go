@@ -225,9 +225,45 @@ func (s *Server) AssertionHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	clientID := r.Form.Get("client_id")
+	c, err := s.db.GetClientByID(r.Context(), clientID)
+	if err != nil {
+		log.Println("invalid client id")
+		http.Error(w, "invalid client id", http.StatusBadRequest)
+		return
+	}
 
 	accountID := r.Form.Get("account_id")
-	clientID := r.Form.Get("client_id")
+
+	// Note: Verify that the account id is associated with the session
+	// Do not do this!!!
+	// check account id from the session
+	users, _ := s.db.GetAllUsers(r.Context())
+	var found bool
+	for _, u := range users {
+		if u.ID == accountID {
+			found = true
+			continue
+		}
+	}
+
+	if !found {
+		log.Println("the User is not logged in !!")
+		http.Error(w, "the User is not logged in !!", http.StatusBadRequest)
+		return
+	}
+
+	// An IDP MUST check the referrer to ensure that a malicious RP does not
+	// receive an ID token corresponding to another RP. In other words,
+	// the IDP MUST check that the referrer is represented by the client id.
+	// As the client ids are IDP-specific, the user agent cannot perform this check.
+	// Reference: https://fedidcg.github.io/FedCM/#idp-api-id-assertion-endpoint
+	if c.Origin == r.URL.Host {
+		log.Println("invalid client origin")
+		http.Error(w, "invalid client origin", http.StatusBadRequest)
+		return
+	}
+
 	nonce := r.Form.Get("nonce")
 	d := r.Form.Get("disclosure_text_shown")
 	disclosureTextShown, err := strconv.ParseBool(d)
@@ -245,7 +281,7 @@ func (s *Server) AssertionHandler(w http.ResponseWriter, r *http.Request) {
 
 	u, _ := s.db.GetUserByID(r.Context(), assertion.AccountID)
 
-	token, err := token.GenereateIDToken("idp", u.ID)
+	t, err := token.GenereateIDToken("idp", u.ID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to generate token: %s", err), http.StatusInternalServerError)
 		return
@@ -255,7 +291,7 @@ func (s *Server) AssertionHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(&struct {
 		Tokne string `json:"token"`
 	}{
-		Tokne: string(token),
+		Tokne: string(t),
 	}); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
