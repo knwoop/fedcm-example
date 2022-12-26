@@ -1,6 +1,8 @@
 import { ApiContext } from 'types'
 
 export type SigninWithFedCMParams = {
+  configURL: string
+  clientId: string
   nonce: string
 }
 
@@ -14,17 +16,27 @@ const signinWithFedCM = async (
   context: ApiContext,
   params: SigninWithFedCMParams,
 ): Promise<Credential | null> => {
+  if (typeof window === 'undefined') {
+    // can't use on server side
+    return null
+  }
+  if (!isFedCMEnabled()) {
+    return null
+  }
+
   return navigator.credentials.get({
     identity: {
       providers: [
         {
-          configURL: process.env.NEXT_PUBLIC_FEDCM_CONFIG_URL,
-          clientId: process.env.NEXT_PUBLIC_AUTH_CLIENT_ID,
-          nonce: params.nance,
+          configURL: params.configURL,
+          clientId: params.clientId,
+          nonce: params.nonce,
         },
       ],
     },
   })
 }
+
+export const isFedCMEnabled = (): boolean => !!window.IdentityCredential
 
 export default signinWithFedCM

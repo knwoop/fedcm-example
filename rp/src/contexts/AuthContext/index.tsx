@@ -51,12 +51,19 @@ export const AuthContextProvider = ({
   }
 
   const signinWithFedCMInternal = async (nonce: string) => {
-    const credential = await signinWithFedCM(context, { nonce: nonce })
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const { token } = credential
+    const credential = await signinWithFedCM(context, {
+      configURL: process.env.NEXT_PUBLIC_AUTH_CLIENT_ID,
+      clientId: process.env.NEXT_PUBLIC_AUTH_CLIENT_ID,
+      nonce: nonce,
+    })
 
-    console.log(token)
+    let token
+    if (credential === null) {
+      token = ''
+    } else {
+      token = credential.token
+    }
+
     await signinWithIDToken(context, { id_token: token })
     await mutate()
   }
