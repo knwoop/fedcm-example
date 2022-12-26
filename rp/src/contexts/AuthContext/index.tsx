@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import useSWR from 'swr'
 import signinWithIDToken from '../../clients/auth/signin-with-idtoken'
 import signin from 'clients/auth/signin'
-import signinWithFedCM from 'clients/auth/signin-with-fedcm'
+import signinWithFedCM, { isFedCMEnabled } from 'clients/auth/signin-with-fedcm'
 import signout from 'clients/auth/signout'
 import type { ApiContext, User } from 'types'
 
@@ -11,6 +11,7 @@ type AuthContextType = {
   isLoading: boolean
   signin: (username: string, password: string) => Promise<void>
   signinWithFedCM: (nonce: string) => Promise<void>
+  isFedCMEnabled: () => boolean
   signout: () => Promise<void>
   mutate: (
     data?: User | Promise<User>,
@@ -28,6 +29,7 @@ const AuthContext = React.createContext<AuthContextType>({
   isLoading: false,
   signin: async () => Promise.resolve(),
   signinWithFedCM: async () => Promise.resolve(),
+  isFedCMEnabled: () => false,
   signout: async () => Promise.resolve(),
   mutate: async () => Promise.resolve(undefined),
 })
@@ -52,7 +54,7 @@ export const AuthContextProvider = ({
 
   const signinWithFedCMInternal = async (nonce: string) => {
     const credential = await signinWithFedCM(context, {
-      configURL: process.env.NEXT_PUBLIC_AUTH_CLIENT_ID,
+      configURL: process.env.NEXT_PUBLIC_FEDCM_CONFIG_URL,
       clientId: process.env.NEXT_PUBLIC_AUTH_CLIENT_ID,
       nonce: nonce,
     })
@@ -80,6 +82,7 @@ export const AuthContextProvider = ({
         isLoading,
         signin: signinInternal,
         signinWithFedCM: signinWithFedCMInternal,
+        isFedCMEnabled: isFedCMEnabled,
         signout: signoutInternal,
         mutate,
       }}
