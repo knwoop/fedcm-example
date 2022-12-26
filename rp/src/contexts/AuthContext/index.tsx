@@ -29,9 +29,7 @@ const AuthContext = React.createContext<AuthContextType>({
   isLoading: false,
   signin: async () => Promise.resolve(),
   signinWithFedCM: async () => Promise.resolve(),
-  isFedCMEnabled: () => {
-    return false
-  },
+  isFedCMEnabled: () => false,
   signout: async () => Promise.resolve(),
   mutate: async () => Promise.resolve(undefined),
 })
