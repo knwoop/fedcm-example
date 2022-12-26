@@ -4,7 +4,7 @@ This is [Federated Credential Management API(FedCM)](https://fedidcg.github.io/F
 
 :warning::warning: Do not use production code :warning::warning:
 
-![Screen_Recording_2022-12-27_at_8_12_05_AdobeExpress](https://user-images.githubusercontent.com/13586089/209587898-fa3b037e-c7b8-4326-b274-38bde4f3eb63.gif)
+![Screen_Recording_2022-12-27_at_8_17_59_AdobeExpress](https://user-images.githubusercontent.com/13586089/209588118-4dd8e2a0-6d0d-46e3-90d1-5cf8e92c8b81.gif)
 
 ## How to use
 
