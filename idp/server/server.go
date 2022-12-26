@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,7 +28,8 @@ func run(ctx context.Context) int {
 	select {
 	case <-termCh:
 		return 0
-	case <-errCh:
+	case err := <-errCh:
+		fmt.Fprintf(os.Stderr, "[ERROR] error server running: %s", err)
 		return 1
 	}
 }

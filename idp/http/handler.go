@@ -4,16 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"net/http"
-	"strconv"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/knwoop/fedcm-example/idp/config"
 	"github.com/knwoop/fedcm-example/idp/fedcm"
 	"github.com/knwoop/fedcm-example/idp/token"
 	"github.com/knwoop/fedcm-example/idp/user"
+	"log"
+	"net/http"
+	"strconv"
 )
 
 func (s *Server) Signin(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +25,8 @@ func (s *Server) Signin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		u = &req
 		u.ID = uuid.NewString()
-		u.Username = "no " + time.Now().Format("150405")
-		u.Name = "foo"
+		u.Username = req.Username
+		u.Name = req.Username
 		u.Email = fmt.Sprintf("%s@example.com", u.Username)
 		_ = s.db.PutUser(r.Context(), u)
 	}
@@ -110,6 +108,11 @@ func (s *Server) getMeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetWellKnownFileHandler(w http.ResponseWriter, r *http.Request) {
+	if !fedcm.AllowedHeader(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	wi := &fedcm.WebIdentity{
 		ProviderURLs: []string{
 			"http://localhost:8080/config.json",
@@ -125,6 +128,11 @@ func (s *Server) GetWellKnownFileHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *Server) GetConfigFileHandler(w http.ResponseWriter, r *http.Request) {
+	if !fedcm.AllowedHeader(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	m := &fedcm.Manifest{
 		AccountsEndpoint:       "/fedcm/accounts_endpoint",
 		ClientMetadataEndpoint: "/fedcm/client_metadata_endpoint",
@@ -150,6 +158,11 @@ func (s *Server) GetConfigFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) AccountsHandler(w http.ResponseWriter, r *http.Request) {
+	if !fedcm.AllowedHeader(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	_, err := r.Cookie("SID")
 	if err != nil {
 		switch {
@@ -190,6 +203,11 @@ func (s *Server) AccountsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) MetadataHandler(w http.ResponseWriter, r *http.Request) {
+	if !fedcm.AllowedHeader(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	m := &fedcm.IdentityProviderClientMetadata{
 		PrivacyPolicyURL:  config.PrivacyPolicyURL,
 		TermsOfServiceURL: config.TermsOfServiceURL,
