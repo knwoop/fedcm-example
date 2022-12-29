@@ -1,9 +1,11 @@
 import React, { useContext } from 'react'
 import useSWR from 'swr'
-import signinWithIDToken from '../../clients/auth/signin-with-idtoken'
-import signin from 'clients/auth/signin'
-import signinWithFedCM, { isFedCMEnabled } from 'clients/auth/signin-with-fedcm'
-import signout from 'clients/auth/signout'
+import signinWithIDToken from '../../services/auth/signin-with-idtoken'
+import signin from 'services/auth/signin'
+import signinWithFedCM, {
+  isFedCMEnabled,
+} from 'services/auth/signin-with-fedcm'
+import signout from 'services/auth/signout'
 import type { ApiContext, User } from 'types'
 
 type AuthContextType = {
